@@ -1,0 +1,87 @@
+﻿@page
+@model MiApi.Pages.RegistroModel
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+<div class="container mt-5">
+    <h1>Registro de Usuario</h1>
+
+    <form id="registroForm" class="mt-4">
+        <div class="form-group">
+            <label for="nombre">Nombre:</label>
+            <input type="text" class="form-control" id="nombre" name="Nombre" required>
+        </div>
+
+        <div class="form-group">
+            <label for="edad">Edad:</label>
+            <input type="number" class="form-control" id="edad" name="Edad" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" class="form-control" id="email" name="Email" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Registrar</button>
+    </form>
+
+    <div id="usuariosRegistrados" class="mt-5"></div>
+</div>
+
+<script>
+    // Función para cargar y mostrar usuarios registrados
+    function cargarUsuarios() {
+        fetch('/api/Usuarios') // Usa una ruta relativa que asume que tu página y API están en el mismo dominio y puerto
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('La red falló o la respuesta no fue OK');
+                }
+                return response.json();
+            })
+            .then(usuarios => {
+                const contenedor = document.getElementById('usuariosRegistrados');
+                contenedor.innerHTML = '<h2>Usuarios Registrados</h2>';
+
+                usuarios.forEach(usuario => {
+                    contenedor.innerHTML += `<p>${usuario.nombre}, ${usuario.edad}, ${usuario.email}</p>`;
+                });
+            })
+            .catch(error => console.error('Error al cargar usuarios:', error));
+    }
+
+    // Asegúrate de que cargarUsuarios se llame cuando la página se carga
+    document.addEventListener('DOMContentLoaded', cargarUsuarios);
+
+    // Función para manejar el envío del formulario
+    document.getElementById('registroForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = {
+            Nombre: document.getElementById('nombre').value,
+            Edad: parseInt(document.getElementById('edad').value, 10),
+            Email: document.getElementById('email').value
+        };
+
+        fetch('/api/Usuarios', { // De nuevo, usa una ruta relativa
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('La solicitud falló');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Usuario registrado:', data);
+                cargarUsuarios(); // Recargar la lista de usuarios después de registrar uno nuevo
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
+</script>
+
